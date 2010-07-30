@@ -1,0 +1,140 @@
+robocopy-wrapper - robocopyを使ったバラマキ型バックアップツール
+===============================================================
+
+動作確認
+--------
+
+- Windows XP SP3 or higher
+- robocopy.exe XP026 or higher (Included Robocopy GUI)
+
+特徴
+----
+
+- バラマキ型バックアップ
+- バックアップしたいフォルダをrc.iniに書く
+- バックアップ先は候補フォルダから自動的に選択される
+- 実体はrobocopyを使ったフォルダ同期・差分バックアップ
+- rc.iniを使わずに単独フォルダのバックアップも可能
+- バックアップ先のスナップショット作成をサポート
+
+バラマキ型バックアップとは
+--------------------------
+
+robocopy-wrapperの特徴は、フォルダを複数のHDDに「ばらまきコ
+ピー」することにあります。通常のバックアップツールはバックアッ
+プ先が固定ですが、robocopy-wrapperは実行するたびにコピー先フォ
+ルダが変化します。デフォルトではG:ドライブからC:ドライブまで
+のルート直下の「rc」フォルダがバックアップ先となります。
+
+例えばもしG:\rcというフォルダがあればそこにバックアップします。
+なくてもF:\rcがあればそこにバックアップします。これをC:ドライ
+ブまで続けます。候補フォルダがいずれも存在しなければ何もしま
+せん。複数のリムーバブルHDDを運用することでバックアップ先を増
+やし、大事なデータを冗長化することをねらっています。
+
+もちろんバックアップ先候補を1つにすることで固定化は可能ですし、
+カスタマイズすることで候補フォルダは任意に設定できます。
+
+基本的な使い方
+--------------
+
+  C:\rc> copy rc.ini.sample rc.ini
+  C:\rc> notepad rc.ini (Edit source folders)
+  C:\rc> notepad rc.bat (Edit "BackupDirs")
+  C:\rc> rc
+
+まずrc.iniにバックアップしたいフォルダを記述したのち、rc.bat
+内のBackupDirs変数を確認して任意のドライブにrcフォルダを作り
+ます。これはHDDなどをバックアップメディアとして認識させるため
+に手動で作る必要があります。そしてrc.batを実行すると、rcフォ
+ルダの下にマシン名のフォルダが作成されてバックアップが始まり
+ます。デフォルトはミラーリングです。細かい動作を変更する場合
+は「rc.batのカスタマイズ」を参照してください。
+
+書式
+----
+
+- rc.bat [SrcDir [DstDir] | /new]
+
+実行例
+------
+
+* rc.iniにしたがってバックアップ
+  * rc.bat
+* フォルダをバックアップ
+  * rc.bat "C:\Documents and Settings\user\My Documents"
+* フォルダを場所指定してバックアップ
+  * rc.bat "C:\Documents and Settings\user\My Documents" "D:\My Documents"
+* バックアップ先にスナップショットを作成
+  * rc.bat /new
+
+rc.iniにバックアップしたいフォルダを書く
+----------------------------------------
+
+* 1行1フォルダ
+* 1行に2つフォルダを書くと2つ目はバックアップ先になる
+  * カンマ区切り
+  * C:\Windows\temp,D:\temp
+  * 上記のように書くと必ずD:\tempにバックアップされる
+* もしrc_COMPUTERNAME.iniが存在する場合はそちら優先
+  * COMPUTERNAMEはマシン名の環境変数
+* 漢字コードはShift_JIS (cp932)
+
+rc.batのカスタマイズ
+--------------------
+
+* BackupDirs
+  * 列挙されたrcフォルダのうち1つがバックアップ先になる
+  * 列挙されたrcフォルダがいずれも存在しなければ何もしない
+  * 実行時に存在しないドライブレターやrcフォルダは無視される
+  * 末尾にかかれたrcフォルダほど優先される
+* RobocopyOptions
+  * robocopyにつけるオプション。デフォルトは以下のとおり。
+    * ミラーリングモード
+    * 古いファイルはコピーしない
+    * パーセンテージを表示しない
+    * メッセージは冗長
+    * コピー失敗時のリトライは1回
+    * リトライウエイトは3秒
+    * ファイルタイムスタンプ精度を2秒とする
+    * ディレクトリのタイムスタンプもコピーする
+* EnableExclude
+  * yesならばExcludeFilesおよびExcludeDirsをコピーしない
+* EnableVerbose
+  * yesならば冗長モードだがほぼデバッグのためなので使い道なし
+* EnableLog
+  * yesならばログファイル rc-YYYY-MM-DD-HH-MM.log を作成する
+* EnableDebug
+  * yesならばrobocopyのオプションを表示する
+
+スナップショット作成
+--------------------
+
+rc.bat /new を実行するとスナップショットを作成します。このオ
+プションは単独で使用します。具体的にはバックアップ先のマシン
+名フォルダが「マシン名-YYYY-MM-DD-HH-MM」という名前にリネーム
+されます。データの冗長化をさらにすすめるためのオプションで、
+週一回〜月一回程度実行することを想定しています。
+
+タスクスケジュール化
+--------------------
+
+* 1日1回 23時にc:\rc\rc.batを実行するようにタスク登録する例
+  * C:\> schtasks.exe /create /ru system /tn "rc" /tr "c:\rc\rc.bat" /sc daily /st 23:00:00
+
+著作権
+------
+
+robocopy-warapper はフリーソフトウェアです。特に言及される場
+合を除き、Perlと同じ条件において再配布および修正が可能です。
+
+Except where otherwise noted, robocopy-warapper is free
+software; you can redistribute it and/or modify it under the
+same terms as Perl itself.
+
+mofigan@gmail.com
+
+以上
+
+
+
