@@ -80,7 +80,7 @@ exit /b 0
   if not exist "%SRC%" call :sub_copy_folders
   if not exist %LOG% goto _no_log
     move %LOG% "%DST%" >NUL
-    find "ERROR:" "%DST%\%LOG%" > "%DST%\\%LOG%.err"
+    find "ERROR " "%DST%\%LOG%" > "%DST%\\%LOG%.err"
     if not "%ERRORLEVEL%"=="0" del "%DST%\%LOG%.err"
     if exist "%DST%\%LOG%.err" start notepad.exe "%DST%\%LOG%.err"
   :_no_log
