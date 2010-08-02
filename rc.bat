@@ -12,7 +12,7 @@ setlocal
   set EnableDebug=no
   rem ----------END OF CONFIG----------
   set MYNAME=rc
-  set Version=0.4.1
+  set Version=0.4.2
   for %%i in (%BackupDirs%) do if exist %%i set DEST=%%i
   call :sub_set_datetime
   call :sub_set_robocopy_option
